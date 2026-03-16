@@ -1,14 +1,12 @@
 import {useEffect, useMemo, useState} from "react"
 import {FilterSidebar} from "@/components/classroom-finder/filter-sidebar"
 import {ClassroomGrid} from "@/components/classroom-finder/classroom-grid"
-import {CampusMap} from "@/components/classroom-finder/campus-map"
 import {TimetableView} from "@/components/classroom-finder/timetable-view"
 import {type ViewMode, ViewToggle} from "@/components/classroom-finder/view-toggle"
 import {
   type AvailableClassroom,
   getAllClassroomsWithStatus,
   getAvailableClassrooms,
-  getAvailableCountByBuilding,
   getCurrentTimeSlot
 } from "@/lib/utils/classroom-utils"
 import {GraduationCap, Menu, Search, X} from "lucide-react"
@@ -25,7 +23,6 @@ export default function ClassroomFinderPage() {
   const [view, setView] = useState<ViewMode>("grid")
   const [availableClassrooms, setAvailableClassrooms] = useState<AvailableClassroom[]>([])
   const [allClassrooms, setAllClassrooms] = useState<AvailableClassroom[]>([])
-  const [availableCounts, setAvailableCounts] = useState<Map<string, number>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -38,10 +35,8 @@ export default function ClassroomFinderPage() {
         const buildingFilter = selectedBuildings.length > 0 ? selectedBuildings : undefined
         const available = getAvailableClassrooms(selectedDate, selectedTime, buildingFilter)
         const all = getAllClassroomsWithStatus(selectedDate, selectedTime, buildingFilter)
-        const counts = getAvailableCountByBuilding(selectedDate, selectedTime)
         setAvailableClassrooms(available)
         setAllClassrooms(all)
-        setAvailableCounts(counts)
         setIsLoading(false)
       }, 300)
     }
@@ -60,14 +55,6 @@ export default function ClassroomFinderPage() {
       c.building.code.toLowerCase().includes(term)
     )
   }, [displayedClassrooms, classroomSearch])
-
-  const handleBuildingClick = (buildingId: string) => {
-    if (selectedBuildings.includes(buildingId)) {
-      setSelectedBuildings(selectedBuildings.filter((id) => id !== buildingId))
-    } else {
-      setSelectedBuildings([...selectedBuildings, buildingId])
-    }
-  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -177,13 +164,6 @@ export default function ClassroomFinderPage() {
             {view === "grid" ? (
               <ClassroomGrid classrooms={filteredClassrooms} selectedBuildings={selectedBuildings}
                              isLoading={isLoading}/>
-            ) : view === "map" ? (
-              <CampusMap
-                availableClassrooms={filteredClassrooms}
-                availableCounts={availableCounts}
-                selectedBuildings={selectedBuildings}
-                onBuildingClick={handleBuildingClick}
-              />
             ) : (
               <TimetableView
                 selectedDate={selectedDate!}
