@@ -3,6 +3,7 @@ compatibility_date = "2026-03-16"
 
 [assets]
 not_found_handling = "single-page-application"
+directory = './dist'
 
 [route]
 pattern = "usyd-emptyroom.kota113.com"
