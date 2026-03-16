@@ -19,30 +19,21 @@ import {cn} from "@/lib/utils"
 import {Input} from "@/components/ui/input"
 
 export default function ClassroomFinderPage() {
-  const [mounted, setMounted] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
+  const [selectedTime, setSelectedTime] = useState<string | null>(getCurrentTimeSlot())
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>([])
   const [view, setView] = useState<ViewMode>("grid")
   const [availableClassrooms, setAvailableClassrooms] = useState<AvailableClassroom[]>([])
   const [allClassrooms, setAllClassrooms] = useState<AvailableClassroom[]>([])
   const [availableCounts, setAvailableCounts] = useState<Map<string, number>>(new Map())
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [classroomSearch, setClassroomSearch] = useState("")
 
-  // Initialize date/time on client only to avoid hydration mismatch
-  useEffect(() => {
-    setSelectedDate(new Date())
-    setSelectedTime(getCurrentTimeSlot())
-    setMounted(true)
-  }, [])
-
   // Search classrooms whenever date/time/buildings change
   useEffect(() => {
-    if (mounted && selectedDate && selectedTime) {
-      setIsLoading(true)
+    if (selectedDate && selectedTime) {
       setTimeout(() => {
         const buildingFilter = selectedBuildings.length > 0 ? selectedBuildings : undefined
         const available = getAvailableClassrooms(selectedDate, selectedTime, buildingFilter)
@@ -54,7 +45,7 @@ export default function ClassroomFinderPage() {
         setIsLoading(false)
       }, 300)
     }
-  }, [mounted, selectedDate, selectedTime, selectedBuildings])
+  }, [selectedDate, selectedTime, selectedBuildings])
 
   // Choose which classrooms to display based on toggle
   const displayedClassrooms = showOnlyAvailable ? availableClassrooms : allClassrooms
@@ -81,7 +72,7 @@ export default function ClassroomFinderPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 py-3 lg:px-6">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
@@ -141,7 +132,7 @@ export default function ClassroomFinderPage() {
           showOnlyAvailable={showOnlyAvailable}
           onShowOnlyAvailableChange={setShowOnlyAvailable}
           className={cn(
-            "w-72 flex-shrink-0",
+            "w-72 shrink-0",
             "fixed inset-y-0 left-0 z-50 pt-16 lg:pt-0 lg:relative lg:z-auto",
             "transition-transform duration-200 lg:translate-x-0",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
